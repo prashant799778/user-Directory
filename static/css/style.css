@@ -1,0 +1,92 @@
+*{
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	box-sizing: border-box;
+}
+
+
+.timeline .events {
+  position: relative;
+  background-color: #fed700;
+  height: 3px;
+  width: 100%;
+  border-radius: 4px;
+  margin: 5em 0;
+ }
+
+.timeline .events ol {
+  margin: 0;
+  padding: 0;
+}
+
+.time-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    list-style: none;
+}
+
+.timeline .events ul li {
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.timeline .events ul li a {
+      font-size: 1.25em;
+    color: #000;
+    text-decoration: none;
+    position: absolute;
+    top: -43px;
+    left: -20px;
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.timeline .events ul li:after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 0;
+  right: auto;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 3px solid #fed700;
+  background-color: #fff;
+  transition: 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.timeline .events ul li a:hover::after {
+  	background-color: #fed700;
+    border-color: #fed700;
+}
+
+.timeline .events ul li.selected:after {
+    background-color: #30cd76;
+    border-color: #30cd76;
+}
+.time-line li:last-child a {
+    left: -55px !important;
+}
+.time-line > li.selected > a {
+    color: #30cd76 !important;
+}
+@media (min-width: 320px) and (max-width: 667px){
+	.timeline .events ul li a {
+	    font-size: 0.8rem;
+	    color: #000;
+	    text-decoration: none;
+	    position: absolute;
+	    top: -31px;
+	    left: -15px;
+	    text-transform: capitalize;
+	    font-weight: 500;
+	}
+	.time-line li:last-child a {
+	    left: -46px !important;
+	}
+}
