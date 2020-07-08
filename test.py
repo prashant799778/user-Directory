@@ -39,7 +39,7 @@ def CurrentDatetime():
 
 
 
-#creating flask object
+
 app=Flask(__name__)
 UPLOAD_FOLDER=  " C:\\Users\\goyal\\Desktop"
 URL="http://127.0.0.1:5000/"
@@ -56,8 +56,7 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/pras"
 
 mongo = PyMongo(app)
 app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 
 
 app.debug=True
@@ -210,7 +209,7 @@ def login():
 
 
                 elif data2['status'] == 0:
-                   return jsonify({'msg': f'user allowed to login'})
+                   return jsonify({'msg': f'user  DisApproved to login'})
                 else:
                     return jsonify({'msg': f'user account Deleted'})
                  
@@ -246,41 +245,34 @@ def update():
         inputdata = request.form.get('data') 
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata)
-        startlimit,endlimit="",""
+        
+        name = inputdata['name']
+        password= inputdata['password']
+        email=inputdata['email']
+        _id = inputdata['id']
        
+        filename,PicPath="",""
        
-        msg ="1"
-       
-        if msg == "1":
-            name = inputdata['name']
-            password= inputdata['password']
-            email=inputdata['email']
-            _id = inputdata['id']
+
+
+        if 'postImage' in request.files:  
+            print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+            file = request.files.get('postImage')        
+            filename = file.filename or ''  
+            print(filename,"jsj")
+            filepath = 'C:/Users/goyal/Desktop/' + filename      
+
+            file.save(filename)
+
+        
+        if name and email and password and request.method == 'POST':
+        	_hashed_password = generate_password_hash(password)
+        	mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
+            Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                  
+            return Data
            
-            filename,PicPath="",""
-           
-
-
-            if 'postImage' in request.files:  
-                print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
-                file = request.files.get('postImage')        
-                filename = file.filename or ''  
-                print(filename,"jsj")
-                filepath = 'C:/Users/goyal/Desktop/' + filename      
-
-                file.save(filename)
-
-            
-            if name and email and password and request.method == 'POST':
-            	_hashed_password = generate_password_hash(password)
-            	mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
-                Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                  
-                return Data
-            else:
-                return commonfile.Errormessage()
                         
-        else:
-            return msg 
+        
     except Exception as e :
         print("Exception---->" +str(e))           
         output = {"status":"false","message":"something went wrong","result":""}
@@ -294,38 +286,30 @@ def updateProfilePic():
         inputdata = request.form.get('data') 
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata)
-        startlimit,endlimit="",""
+        _id = inputdata['id']
+       
+        filename=""
+       
+
+
+        if 'postImage' in request.files:  
+            print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+            file = request.files.get('postImage')        
+            filename = file.filename or ''  
+            print(filename,"jsj")
+            filepath = 'C:/Users/goyal/Desktop/' + filename      
+
+            file.save(filename)
+
         
-       
-        msg ="1"
-       
-        if msg == "1":
+        if  request.method == 'POST':
            
-            _id = inputdata['id']
-           
-            filename,PicPath="",""
-           
-
-
-            if 'postImage' in request.files:  
-                print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
-                file = request.files.get('postImage')        
-                filename = file.filename or ''  
-                print(filename,"jsj")
-                filepath = 'C:/Users/goyal/Desktop/' + filename      
-
-                file.save(filename)
-
-            
-            if  request.method == 'POST':
-               
-                mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'image':filepath}})
-                Data = {"status":"true","message":"Profile Picture Updated Successfully","result":"Profile Picture Updated Successfully"}                  
-                return Data
+            mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'image':filepath}})
+            Data = {"status":"true","message":"Profile Picture Updated Successfully","result":"Profile Picture Updated Successfully"}                  
+            return Data
            
                         
-        else:
-            return msg 
+        
     except Exception as e :
         print("Exception---->" +str(e))           
         output = {"status":"false","message":"something went wrong","result":""}
@@ -346,41 +330,24 @@ def AccountStatus():
         inputdata = request.get_data()
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata.decode('utf-8'))
-        startlimit,endlimit="",""
-        # keyarr = ["name","email","password",'userId']
-       
-        msg ="1"
-       
-        if msg == "1":
-           
-            
-            Id = inputdata['id']
-           
-            
-           
+        Id = inputdata['id']
 
-
-           
-           
-            if Id and request.method == 'POST':
-                user = mongo.db.user.find_one({'_id': ObjectId(Id)})
-                for i in user:
-                    status=i['status']
-                    if status == 0 or status == '0':
-                        mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
-                        Data = {"status":"true","message":"Account Approved Successfully","result":"data Updated Successfully"}                  
-                        return Data
-                    else:
-                        mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':0}})
-                        Data = {"status":"true","message":"Account DisApproved Successfully","result":"data Updated Successfully"}                  
-                        return Data
+        if Id and request.method == 'POST':
+            user = mongo.db.user.find_one({'_id': ObjectId(Id)})
+            for i in user:
+                status=i['status']
+                if status == 0 or status == '0':
+                    mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
+                    Data = {"status":"true","message":"Account Approved Successfully","result":"data Updated Successfully"}                  
+                    return Data
+                else:
+                    mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':0}})
+                    Data = {"status":"true","message":"Account DisApproved Successfully","result":"data Updated Successfully"}                  
+                    return Data
                         
         
                 
-            
-                        
-        else:
-            return msg 
+          
     except Exception as e :
         print("Exception---->" +str(e))           
         output = {"status":"false","message":"something went wrong","result":""}
@@ -393,34 +360,22 @@ def deleteAccount():
         inputdata = request.get_data()
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata.decode('utf-8'))
-       
-        msg ="1"
-       
-        if msg == "1":
-           
-            
-            Id = inputdata['id']
-           
-            
-           
 
+        Id = inputdata['id']
 
-           
-           
-            if Id and request.method == 'POST':
-                user = mongo.db.user.find_one({'_id': ObjectId(Id)})
-                if user:
-                    mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
-                    Data = {"status":"true","message":"Account Deleted Successfully","result":"data Updated Successfully"}                  
-                    return Data
+        if Id and request.method == 'POST':
+            user = mongo.db.user.find_one({'_id': ObjectId(Id)})
+            if user:
+                mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
+                Data = {"status":"true","message":"Account Deleted Successfully","result":"data Updated Successfully"}                  
+                return Data
 
                         
         
                 
             
                         
-        else:
-            return msg 
+        
     except Exception as e :
         print("Exception---->" +str(e))           
         output = {"status":"false","message":"something went wrong","result":""}
