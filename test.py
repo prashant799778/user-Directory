@@ -1,37 +1,25 @@
 from flask import Flask, render_template,url_for, redirect, jsonify, request, session
 from flask import Flask, send_from_directory, abort
-from flask_wtf import FlaskForm
-from wtforms import StringField
-from wtforms.validators import InputRequired
+
 from flask_pymongo import PyMongo
 from flask import jsonify
-from flask import request
+
 import json
 import pytz 
-import bcrypt
-from bson.objectid import ObjectId
-# from form import RegistrationForm, LoginForm, UpdateAccountForm
 
-from flask import Flask, jsonify, request
+from bson.objectid import ObjectId
+
+
+
 from flask_pymongo import PyMongo
-from flask_bcrypt import Bcrypt
+
 from pymongo import errors
 from datetime import datetime
 import os
 import urllib.request
-
-from flask import Flask, request, redirect, jsonify
-from werkzeug.utils import secure_filename
 from werkzeug import generate_password_hash, check_password_hash
 from bson.json_util import dumps
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-
-
-
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def profilePic(filename):
 
@@ -61,18 +49,17 @@ bcrypt = Bcrypt(app)
 
 
 
-#connecting to database mlab and configuring
+
 app.config['MONGO_DBNAME']='pras'
 app.config["MONGO_URI"] = "mongodb://localhost:27017/pras"
     
 
-#connecting the app to mongodb database using pymongo
 mongo = PyMongo(app)
 app.secret_key = "secret key"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-#enabling debugging
+
 app.debug=True
 
 
@@ -209,12 +196,7 @@ def login():
         print(data1)
         data2=json.loads(data1)
         print(data2,"hhs")
-        try:
-            if 'name' in session:
-                return jsonify({'msg': f'user is already logged in'})
-        except KeyError:
-            pass 
-
+       
         if data2!=None:
 
            
@@ -223,7 +205,9 @@ def login():
                 
                 if data2['status'] == 1:
                     a.append(data2)
-                    return render_template('account.html',data=a)
+                    data={'userProfile':a}
+                    return data
+
 
                 elif data2['status'] == 0:
                    return jsonify({'msg': f'user allowed to login'})
@@ -263,7 +247,7 @@ def update():
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata)
         startlimit,endlimit="",""
-        # keyarr = ["name","email","password",'userId']
+       
        
         msg ="1"
        
@@ -290,12 +274,6 @@ def update():
             if name and email and password and request.method == 'POST':
             	_hashed_password = generate_password_hash(password)
             	mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
-		
-            	
-            data="1"
-         
-
-            if data != "0":
                 Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                  
                 return Data
             else:
@@ -317,7 +295,7 @@ def updateProfilePic():
         print("===========================",inputdata)      
         inputdata = json.loads(inputdata)
         startlimit,endlimit="",""
-        # keyarr = ["name","email","password",'userId']
+        
        
         msg ="1"
        
