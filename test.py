@@ -208,9 +208,9 @@ def login():
 
 
                 elif data2['status'] == 0:
-                   return jsonify({'msg': f'user  DisApproved to login'})
+                   return jsonify({'msg': f'user {name} DisApproved to login'})
                 else:
-                    return jsonify({'msg': f'user account Deleted'})
+                    return jsonify({'msg': f'user {name} account Deleted'})
                  
             else:
                
@@ -225,9 +225,18 @@ def login():
                 
             
         else:
-            return jsonify({'msg': f'user {name} not found'}), 404
+            users= mongo.db.user.find_one({'name':name})
+            data1=dumps(users)
+            print(data1)
+            data2=json.loads(data1)
+            print(data2,"hhs")
+            if data2 ! =None:
+                return jsonify({'msg': f'user {name} wrong password'})
+            else:
+                return jsonify({'msg': f'user {name} not found'})
 
-# Logout
+
+#
 @app.route('/logout')
 def logout():
     if 'name' in session:
@@ -250,7 +259,7 @@ def update():
         email=inputdata['email']
         _id = inputdata['id']
        
-        filename,PicPath="",""
+        filename=""
        
 
 
