@@ -17,7 +17,6 @@ from pymongo import errors
 from datetime import datetime
 import os
 import urllib.request
-from werkzeug import generate_password_hash, check_password_hash
 from bson.json_util import dumps
 
 
@@ -82,7 +81,7 @@ def Index():
 
 
 @app.route('/register', methods=['POST'])
-def insert():
+def register():
     try:
         if request.method == 'POST':
             inputdata = request.get_data()
@@ -94,13 +93,13 @@ def insert():
             
             a=CurrentDatetime()
             if name and email and password and request.method == 'POST':
-                    _hashed_password = generate_password_hash(password)
+                   
                     user = mongo.db.user.find_one({'email':email})
                     print(user)
                     users= mongo.db.user.find_one({'name':name})
                     print(users)
                     if users == None  or user == None:
-                            id = mongo.db.user.insert({'name':name, 'email':email, 'pwd': _hashed_password,'status':0,'dateCreate':a,'userType':1})
+                            id = mongo.db.user.insert({'name':name, 'email':email, 'password': password,'status':0,'dateCreate':a,'userType':1})
                             resp = jsonify('User added successfully!')
                             resp.status_code = 200
                             return resp
@@ -184,7 +183,7 @@ def totalusers():
 @app.route('/login', methods=['POST','GET'])
 def login():
     if request.method == 'GET':
-        return render_template("login.html",title="User Login")
+        return render_template("login.html")
     if request.method == 'POST':
         print('ww')
           
@@ -366,7 +365,7 @@ def deleteAccount():
         if Id and request.method == 'POST':
             user = mongo.db.user.find_one({'_id': ObjectId(Id)})
             if user:
-                mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
+                mongo.db.user.update_one({'_id': ObjectId(Id['$oid']) if '$oid' in Id else ObjectId(Id)}, {'$set': {'status':1}})
                 Data = {"status":"true","message":"Account Deleted Successfully","result":"data Updated Successfully"}                  
                 return Data
 
