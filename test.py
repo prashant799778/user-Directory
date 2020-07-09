@@ -11,6 +11,7 @@ from bson.objectid import ObjectId
 
 
 
+
 from flask_pymongo import PyMongo
 
 from pymongo import errors
@@ -43,7 +44,6 @@ app=Flask(__name__)
 UPLOAD_FOLDER=  " C:\\Users\\goyal\\Desktop"
 URL="http://127.0.0.1:5000/"
 defaultPic="defaultpict.png"
-bcrypt = Bcrypt(app)
 
 
 
@@ -230,7 +230,7 @@ def login():
             print(data1)
             data2=json.loads(data1)
             print(data2,"hhs")
-            if data2 ! =None:
+            if data2 != None:
                 return jsonify({'msg': f'user {name} wrong password'})
             else:
                 return jsonify({'msg': f'user {name} not found'})
@@ -274,9 +274,8 @@ def update():
 
         
         if name and email and password and request.method == 'POST':
-        	_hashed_password = generate_password_hash(password)
-        	mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
-            Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                  
+            mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
+            Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                 
             return Data
            
                         
