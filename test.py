@@ -3,7 +3,7 @@ from flask import Flask, send_from_directory, abort
 
 from flask_pymongo import PyMongo
 from flask import jsonify
-
+import re
 import json
 import pytz 
 
@@ -80,19 +80,33 @@ def Index():
     return render_template('index.html')
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET','POST'])
 def register():
     try:
+        if request.method == 'GET':
+            return render_template("index.html")
         if request.method == 'POST':
-            inputdata = request.get_data()
-            print("===========================",inputdata)      
-            inputdata = json.loads(inputdata.decode('utf-8'))
-            name = inputdata['name']
-            password= inputdata['password']
-            email=inputdata['email']
+            name=str(request.form["name"])
+            password = str(request.form["password"])
+            email=str(request.form["email"])
             
             a=CurrentDatetime()
-            if name and email and password and request.method == 'POST':
+            if name and email and password:
+                if not re.match(r'[A-Za-z0-9]+',name):
+                    msg = 'Username must contain only characters and numbers!'
+                    return render_template('index.html',msg=msg)
+
+                elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                    msg = 'Invalid email address!'
+                    return render_template('index.html',msg=msg)
+
+                elif not username or not password or not email:
+                    msg = 'Please fill out the form!'
+                    return render_template('index.html',msg=msg)
+
+                else:            
+
+
                    
                     user = mongo.db.user.find_one({'email':email})
                     print(user)
@@ -100,13 +114,14 @@ def register():
                     print(users)
                     if users == None  or user == None:
                             id = mongo.db.user.insert({'name':name, 'email':email, 'password': password,'status':0,'dateCreate':a,'userType':1})
-                            resp = jsonify('User added successfully!')
-                            resp.status_code = 200
-                            return resp
+                            msg= 'User  Registered successfully!'
+                           
+                            return render_template('login.html',msg=msg)
                     else:
-                            resp=jsonify('User already exists')
-                            resp.status_code = 200
-                            return resp
+                            msg='User already exists'
+                            
+                            return render_template('index.html',msg=msg)
+
 
     except Exception as e :
         print("Exception---->" +str(e))           
@@ -199,18 +214,30 @@ def login():
 
            
             if data2['userType']== 1:
-                a=[]
+                
                 
                 if data2['status'] == 1:
-                    a.append(data2)
-                    data={'userProfile':a}
-                    return data
+                    if 'image' not in data2:
+                        data2.update({'image':''})
+                    image=data2['image']
+                    if image !='':
+                        print("ww")
+                        data2['image']=URL +data2['image']
+                       
+                    else:
+                        print("jw")
+                        data2['image'] = URL +profilePic(defaultPic)
+            
+
+                    return render_template('account.html',account=data2)
 
 
                 elif data2['status'] == 0:
-                   return jsonify({'msg': f'user {name} DisApproved to login'})
+                    msg="Your account has been DisApproved by admin"
+                    return render_template('login.html',msg=msg)
                 else:
-                    return jsonify({'msg': f'user {name} account Deleted'})
+                    msg='Your account has been Deleted by admin'
+                    return render_template('login.html',msg=msg)
                  
             else:
                
@@ -231,23 +258,22 @@ def login():
             data2=json.loads(data1)
             print(data2,"hhs")
             if data2 != None:
-                return jsonify({'msg': f'user {name} wrong password'})
+                msg='wrong credentials'
+                return render_template('login.html',msg=msg)
             else:
-                return jsonify({'msg': f'user {name} not found'})
+                msg='User does not Exists'
+                return render_template('login.html',msg=msg)
 
 
 #
 @app.route('/logout')
 def logout():
-    if 'name' in session:
-        session.pop('name', default=None)
-        return jsonify({'msg': 'successfully logged out'})
-    else:
-        return jsonify({'msg': 'no user logged in'})
+    return redirect(url_for('login'))
+    
 
 
 
-@app.route('/updateProfile', methods=['POST'])
+@app.route('/removeProfilePic', methods=['POST'])
 def update():
     try:
         inputdata = request.form.get('data') 
@@ -259,22 +285,14 @@ def update():
         email=inputdata['email']
         _id = inputdata['id']
        
-        filename=""
+        
        
 
 
-        if 'postImage' in request.files:  
-            print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
-            file = request.files.get('postImage')        
-            filename = file.filename or ''  
-            print(filename,"jsj")
-            filepath = 'C:/Users/goyal/Desktop/' + filename      
-
-            file.save(filename)
-
+       
         
         if name and email and password and request.method == 'POST':
-            mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filepath}})
+            mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'name':name, 'email':email, 'pwd': _hashed_password,'dateUpdate':CurrentDatetime(),'image':filename}})
             Data = {"status":"true","message":"data Updated Successfully","result":"data Updated Successfully"}                 
             return Data
            
@@ -344,11 +362,11 @@ def AccountStatus():
             for i in user:
                 status=i['status']
                 if status == 0 or status == '0':
-                    mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':1}})
+                    mongo.db.user.update_one({'_id': ObjectId(Id['$oid']) if '$oid' in Id else ObjectId(Id)}, {'$set': {'status':1}})
                     Data = {"status":"true","message":"Account Approved Successfully","result":"data Updated Successfully"}                  
                     return Data
                 else:
-                    mongo.db.user.update_one({'_id': ObjectId(_id['$oid']) if '$oid' in _id else ObjectId(_id)}, {'$set': {'status':0}})
+                    mongo.db.user.update_one({'_id': ObjectId(Id['$oid']) if '$oid' in Id else ObjectId(Id)}, {'$set': {'status':0}})
                     Data = {"status":"true","message":"Account DisApproved Successfully","result":"data Updated Successfully"}                  
                     return Data
                         
